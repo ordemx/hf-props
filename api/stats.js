@@ -1,9 +1,13 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://pskreporter.info/cgi-bin/pskstats.pl?statistics=1");
-    const text = await response.text();
+    const response = await fetch("https://pskreporter.info/cgi-bin/pskstats.pl?statistics=1", {
+      headers: {
+        "User-Agent": "HF-Client/1.0",
+        "Cache-Control": "no-cache"
+      }
+    });
 
-    // PSKReporter іноді повертає preamble, тому шукаємо JSON з першої дужки
+    const text = await response.text();
     const jsonStart = text.indexOf("{");
     if (jsonStart === -1) throw new Error("No JSON found in response");
 
