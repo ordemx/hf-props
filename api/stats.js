@@ -1,16 +1,15 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://pskreporter.info/cgi-bin/pskstats.pl?statistics=1", {
-      headers: {
-        "User-Agent": "HF-Client/1.0",
-        "Cache-Control": "no-cache"
-      }
-    });
-
+    const response = await fetch("https://pskreporter.info/cgi-bin/pskstats.pl?statistics=1");
     const text = await response.text();
-    const jsonStart = text.indexOf("{");
-    if (jsonStart === -1) throw new Error("No JSON found in response");
 
+    // Діагностика
+    if (!text.includes("{")) {
+      console.error("Raw response (unexpected):", text.slice(0, 300));
+      throw new Error("Response did not contain JSON");
+    }
+
+    const jsonStart = text.indexOf("{");
     const rawJson = text.slice(jsonStart);
     const stats = JSON.parse(rawJson);
 
