@@ -3,16 +3,13 @@ export default async function handler(req, res) {
     const response = await fetch("https://pskreporter.info/cgi-bin/pskstats.pl?statistics=1");
     const text = await response.text();
 
-    // Діагностика
-    if (!text.includes("{")) {
-      console.error("Raw response (unexpected):", text.slice(0, 300));
-      throw new Error("Response did not contain JSON");
-    }
+    // Знайти перший рядок, що починається з {
+    const lines = text.split("\n");
+    const jsonLine = lines.find(line => line.trim().startsWith("{"));
 
-    const jsonStart = text.indexOf("{");
-    const rawJson = text.slice(jsonStart);
-    const stats = JSON.parse(rawJson);
+    if (!jsonLine) throw new Error("No JSON object found in response");
 
+    const stats = JSON.parse(jsonLine);
     res.status(200).json(stats);
   } catch (err) {
     console.error("Failed to fetch PSKReporter stats:", err);
