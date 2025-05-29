@@ -3,13 +3,15 @@ export default async function handler(req, res) {
     const response = await fetch("https://pskreporter.info/cgi-bin/pskstats.pl?statistics=1");
     const text = await response.text();
 
-    // Знайти перший рядок, що починається з {
     const lines = text.split("\n");
-    const jsonLine = lines.find(line => line.trim().startsWith("{"));
+    const candidate = lines.find(line => line.trim().startsWith("{"));
 
-    if (!jsonLine) throw new Error("No JSON object found in response");
+    if (!candidate) throw new Error("No JSON-like line found");
 
-    const stats = JSON.parse(jsonLine);
+    // Мінімальна корекція: додаємо лапки до ключів типу bands, modes
+    const fixed = candidate.replace(/([{,]\\s*)(\\w+)(\\s*:)/g, '$1"$2"$3');
+
+    const stats = JSON.parse(fixed);
     res.status(200).json(stats);
   } catch (err) {
     console.error("Failed to fetch PSKReporter stats:", err);
